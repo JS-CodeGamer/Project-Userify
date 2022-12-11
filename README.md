@@ -1,4 +1,4 @@
-# Loginator DJ (Django)
+# Project Userify
 
 A Django based backend implementation of a login system which can be interacted with through an JSON based rest-api.
 
