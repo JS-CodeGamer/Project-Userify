@@ -1,18 +1,23 @@
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework import status
+# Decorators
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
-from rest_framework.response import Response
+# Authentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly
 from .tokens import get_tokens_for_user
+# Response and Pagination
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework_json_api.pagination import JsonApiPageNumberPagination as PageNumberPagination
+# Data
 from .models import OTPModel
-from .serializers import MyUserSerializer
-from rest_framework.views import APIView
 from .models import MyUser
-from rest_framework.pagination import PageNumberPagination
-from django.utils import timezone
-from .utilities import sendMessage
-import random
+from .serializers import MyUserSerializer
+# Template Views and Utilities
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from .utilities import sendMessage
+from django.utils import timezone
+import random
 
 
 # Backend methods:
@@ -53,6 +58,7 @@ def createUser(request):
 def login(request):
     try:
         user = MyUser.objects.get(username=request.data.get('login_identifier'))
+        print(request.data.get('login_identifier'), user)
     except:
         try:
             user = MyUser.objects.get(email=request.data.get('login_identifier'))
@@ -155,13 +161,14 @@ def verifyOTP(request):
 def getUsers(request):
     paginator = PageNumberPagination()
 
-    if 'page_size' in request.data:
+    try:
         paginator.page_size = int(request.data['page_size'])
-    else:
+    except:
         paginator.page_size = 10
 
-    users = MyUser.objects.all()
+    users = MyUser.objects.all().order_by('username')
     result_page = paginator.paginate_queryset(users, request)
+    print([i for i in result_page])
     serializer = MyUserSerializer(result_page, many=True)
 
     return paginator.get_paginated_response(serializer.data)
